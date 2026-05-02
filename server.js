@@ -6,12 +6,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
-if (!GEMINI_API_KEY) {
-  console.error('ERROR: GEMINI_API_KEY is not set.');
+const OPENAI_API_KEY = (process.env.OPENAI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+if (!OPENAI_API_KEY) {
+  console.error('ERROR: OPENAI_API_KEY is not set.');
   process.exit(1);
 }
-console.log('GEMINI_API_KEY starts with:', GEMINI_API_KEY.slice(0, 8), '| length:', GEMINI_API_KEY.length);
+console.log('OPENAI_API_KEY starts with:', OPENAI_API_KEY.slice(0, 8), '| length:', OPENAI_API_KEY.length);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -74,19 +74,21 @@ ${p.additionalDetails ? `รายละเอียดพิเศษ: ${p.addi
 เขียนให้ครบ: intro ทักทาย → warm-up → เนื้อเรื่อง → outro กล่าวลา`;
 }
 
-function geminiRequest(userPrompt, maxTokens) {
+function openaiRequest(messages, maxTokens) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.9 },
+      model: 'gpt-4o-mini',
+      messages,
+      max_tokens: maxTokens,
+      temperature: 0.9,
     });
 
     const options = {
-      hostname: 'generativelanguage.googleapis.com',
-      path: `/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      hostname: 'api.openai.com',
+      path: '/v1/chat/completions',
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
       },
@@ -101,8 +103,7 @@ function geminiRequest(userPrompt, maxTokens) {
           if (res.statusCode >= 400) {
             reject(new Error(parsed.error?.message || `HTTP ${res.statusCode}`));
           } else {
-            const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            resolve(text);
+            resolve(parsed.choices[0]?.message?.content || '');
           }
         } catch (e) {
           reject(new Error(`Parse error: ${data.slice(0, 200)}`));
@@ -119,8 +120,8 @@ function geminiRequest(userPrompt, maxTokens) {
 
 app.get('/api/health', async (req, res) => {
   try {
-    const text = await geminiRequest('say ok in one word', 10);
-    res.json({ status: 'ok', gemini: 'connected', reply: text });
+    const text = await openaiRequest([{ role: 'user', content: 'say ok' }], 5);
+    res.json({ status: 'ok', openai: 'connected', reply: text });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
@@ -129,11 +130,17 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/generate-story', async (req, res) => {
   try {
     const wordCount = WORD_COUNT_MAP[req.body.storyLength] || 1500;
-    const maxTokens = Math.min(wordCount * 3, 8192);
-    const text = await geminiRequest(buildPrompt(req.body), maxTokens);
+    const maxTokens = Math.min(wordCount * 3, 16000);
+    const text = await openaiRequest(
+      [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: buildPrompt(req.body) },
+      ],
+      maxTokens
+    );
     res.json({ text });
   } catch (err) {
-    console.error('Gemini error:', err.message);
+    console.error('OpenAI error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
