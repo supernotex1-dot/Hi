@@ -54,7 +54,7 @@ const SETTING_MAP = {
   'hospital': 'โรงพยาบาล', 'school': 'โรงเรียน',
 };
 const GENDER_MAP = { male: 'ชาย', female: 'หญิง', other: 'ไม่ระบุเพศ' };
-const WORD_COUNT_MAP = { '10': 1000, '15': 1500, '20': 2000, '30': 3000 };
+const WORD_COUNT_MAP = { '10': 1000, '15': 1500, '20': 2000, '30': 3000, '60': 6000 };
 
 function buildPrompt(p) {
   const wordCount = WORD_COUNT_MAP[p.storyLength] || 1500;
@@ -128,12 +128,14 @@ app.get('/api/health', async (req, res) => {
 
 app.post('/api/generate-story', async (req, res) => {
   try {
+    const wordCount = WORD_COUNT_MAP[req.body.storyLength] || 1500;
+    const maxTokens = Math.min(wordCount * 5, 32000);
     const result = await groqRequest(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: buildPrompt(req.body) },
       ],
-      8000
+      maxTokens
     );
     const text = result.choices[0]?.message?.content || '';
     res.json({ text });
