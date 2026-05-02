@@ -6,12 +6,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const OPENAI_API_KEY = (process.env.OPENAI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+const OPENAI_API_KEY = (process.env.DEEPSEEK_API_KEY || '').trim().replace(/^["']|["']$/g, '');
 if (!OPENAI_API_KEY) {
-  console.error('ERROR: OPENAI_API_KEY is not set.');
+  console.error('ERROR: DEEPSEEK_API_KEY is not set.');
   process.exit(1);
 }
-console.log('OPENAI_API_KEY starts with:', OPENAI_API_KEY.slice(0, 8), '| length:', OPENAI_API_KEY.length);
+console.log('DEEPSEEK_API_KEY starts with:', OPENAI_API_KEY.slice(0, 8), '| length:', OPENAI_API_KEY.length);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -77,14 +77,14 @@ ${p.additionalDetails ? `รายละเอียดพิเศษ: ${p.addi
 function openaiRequest(messages, maxTokens) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'deepseek-chat',
       messages,
       max_tokens: maxTokens,
       temperature: 0.9,
     });
 
     const options = {
-      hostname: 'api.openai.com',
+      hostname: 'api.deepseek.com',
       path: '/v1/chat/completions',
       method: 'POST',
       headers: {
@@ -121,7 +121,7 @@ function openaiRequest(messages, maxTokens) {
 app.get('/api/health', async (req, res) => {
   try {
     const text = await openaiRequest([{ role: 'user', content: 'say ok' }], 5);
-    res.json({ status: 'ok', openai: 'connected', reply: text });
+    res.json({ status: 'ok', deepseek: 'connected', reply: text });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
