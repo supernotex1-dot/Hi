@@ -245,53 +245,20 @@ async function generateStory() {
   showPage('generating');
   fullStoryText = '';
 
-  const payload = { ...state.data };
-
   try {
     const res = await fetch('/api/generate-story', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(state.data),
     });
 
-    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
 
+    fullStoryText = data.text || '';
     showPage('story');
     buildStoryMeta();
-    els.storyBody.innerHTML = '<span class="cursor"></span>';
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop(); // keep incomplete line
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const raw = line.slice(6).trim();
-        if (raw === '[DONE]') continue;
-        try {
-          const msg = JSON.parse(raw);
-          if (msg.error) throw new Error(msg.error);
-          if (msg.text) {
-            fullStoryText += msg.text;
-            renderStory(fullStoryText);
-          }
-          if (msg.done) {
-            finishStory();
-          }
-        } catch (e) {
-          if (e.message !== 'Unexpected end of JSON input') throw e;
-        }
-      }
-    }
-
+    renderStory(fullStoryText);
     finishStory();
   } catch (err) {
     showPage('story');

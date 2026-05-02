@@ -75,34 +75,19 @@ ${p.additionalDetails ? `รายละเอียดพิเศษ: ${p.addi
 }
 
 app.post('/api/generate-story', async (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
-  const send = (d) => { res.write(`data: ${JSON.stringify(d)}\n\n`); };
-
   try {
-    const stream = await groq.chat.completions.create({
+    const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: buildPrompt(req.body) },
       ],
-      stream: true,
       max_tokens: 8000,
     });
-
-    for await (const chunk of stream) {
-      const text = chunk.choices[0]?.delta?.content || '';
-      if (text) send({ text });
-    }
-
-    send({ done: true });
-    res.end();
+    const text = completion.choices[0]?.message?.content || '';
+    res.json({ text });
   } catch (err) {
-    send({ error: err.message });
-    res.end();
+    res.status(500).json({ error: err.message });
   }
 });
 
