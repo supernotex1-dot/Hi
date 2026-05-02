@@ -74,6 +74,19 @@ ${p.additionalDetails ? `รายละเอียดพิเศษ: ${p.addi
 เขียนให้ครบ: intro ทักทาย → warm-up → เนื้อเรื่อง → outro กล่าวลา`;
 }
 
+app.get('/api/health', async (req, res) => {
+  try {
+    const test = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: 'say ok' }],
+      max_tokens: 5,
+    });
+    res.json({ status: 'ok', groq: 'connected', reply: test.choices[0]?.message?.content });
+  } catch (err) {
+    res.status(500).json({ status: 'error', type: err.constructor?.name, message: err.message });
+  }
+});
+
 app.post('/api/generate-story', async (req, res) => {
   try {
     const completion = await groq.chat.completions.create({
@@ -87,7 +100,8 @@ app.post('/api/generate-story', async (req, res) => {
     const text = completion.choices[0]?.message?.content || '';
     res.json({ text });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Groq error:', err.constructor?.name, err.message, err.status);
+    res.status(500).json({ error: `[${err.constructor?.name}] ${err.message}` });
   }
 });
 
