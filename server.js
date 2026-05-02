@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const Groq = require('groq-sdk');
+const https = require('https');
 const path = require('path');
 
 const app = express();
@@ -10,8 +10,6 @@ if (!process.env.GROQ_API_KEY) {
   console.error('ERROR: GROQ_API_KEY is not set.');
   process.exit(1);
 }
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -74,34 +72,72 @@ ${p.additionalDetails ? `รายละเอียดพิเศษ: ${p.addi
 เขียนให้ครบ: intro ทักทาย → warm-up → เนื้อเรื่อง → outro กล่าวลา`;
 }
 
+function groqRequest(messages, maxTokens) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      max_tokens: maxTokens,
+    });
+
+    const options = {
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (res.statusCode >= 400) {
+            reject(new Error(parsed.error?.message || `HTTP ${res.statusCode}`));
+          } else {
+            resolve(parsed);
+          }
+        } catch (e) {
+          reject(new Error(`Parse error: ${data.slice(0, 200)}`));
+        }
+      });
+    });
+
+    req.on('error', (e) => reject(new Error(`HTTPS error: ${e.message}`)));
+    req.setTimeout(120000, () => { req.destroy(); reject(new Error('Request timeout')); });
+    req.write(body);
+    req.end();
+  });
+}
+
 app.get('/api/health', async (req, res) => {
   try {
-    const test = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'user', content: 'say ok' }],
-      max_tokens: 5,
-    });
-    res.json({ status: 'ok', groq: 'connected', reply: test.choices[0]?.message?.content });
+    const result = await groqRequest([{ role: 'user', content: 'say ok' }], 5);
+    res.json({ status: 'ok', groq: 'connected', reply: result.choices[0]?.message?.content });
   } catch (err) {
-    res.status(500).json({ status: 'error', type: err.constructor?.name, message: err.message });
+    res.status(500).json({ status: 'error', message: err.message });
   }
 });
 
 app.post('/api/generate-story', async (req, res) => {
   try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      messages: [
+    const result = await groqRequest(
+      [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: buildPrompt(req.body) },
       ],
-      max_tokens: 8000,
-    });
-    const text = completion.choices[0]?.message?.content || '';
+      8000
+    );
+    const text = result.choices[0]?.message?.content || '';
     res.json({ text });
   } catch (err) {
-    console.error('Groq error:', err.constructor?.name, err.message, err.status);
-    res.status(500).json({ error: `[${err.constructor?.name}] ${err.message}` });
+    console.error('Groq error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
