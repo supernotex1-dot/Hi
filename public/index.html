@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teenoihub — เรื่องเล่าผีไทย</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ========== LANDING ========== -->
+    <section id="page-landing" class="page active">
+      <div class="candles-row">
+        <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+        <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+        <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+      </div>
+      <div class="landing-content">
+        <p class="channel-label">🎙️ Teenoihub</p>
+        <h1 class="landing-title">เรื่องเล่าผีไทย</h1>
+        <p class="landing-sub">โดย <strong>ตี๋น้อย</strong> — สร้างเรื่องสยองขวัญไทยในแบบของคุณ</p>
+        <p class="landing-desc">
+          ตอบคำถามสั้นๆ แล้วปล่อยให้ตี๋น้อยสร้างเรื่องเล่าผีไทย<br />
+          ที่ซึมซับตำนาน วัฒนธรรม และ Rule of Horror เข้าด้วยกัน
+        </p>
+        <button class="btn-start" id="btnStart">เริ่มสร้างเรื่อง ▶</button>
+      </div>
+      <div class="fog"></div>
+    </section>
+
+    <!-- ========== QUESTIONNAIRE ========== -->
+    <section id="page-quiz" class="page">
+      <div class="quiz-header">
+        <button class="btn-back-landing" id="btnBackLanding">← หน้าหลัก</button>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <span class="step-label" id="stepLabel">ขั้นที่ 1 / 6</span>
+        </div>
+      </div>
+
+      <div class="quiz-body">
+
+        <!-- Step 1: Story Type -->
+        <div class="step" id="step-1">
+          <h2 class="step-title">เลือกประเภทเรื่องเล่า</h2>
+          <p class="step-sub">คุณต้องการเรื่องแนวไหน?</p>
+          <div class="card-grid">
+            <label class="option-card" data-field="storyType" data-value="rule-of-horror">
+              <input type="radio" name="storyType" value="rule-of-horror" hidden />
+              <span class="card-icon">🕯️</span>
+              <span class="card-label">Rule of Horror</span>
+              <span class="card-desc">สยองขวัญจิตวิทยา สร้าง tension อย่างช้าๆ</span>
+            </label>
+            <label class="option-card" data-field="storyType" data-value="thai-legend">
+              <input type="radio" name="storyType" value="thai-legend" hidden />
+              <span class="card-icon">👻</span>
+              <span class="card-label">ตำนานผีไทย</span>
+              <span class="card-desc">อิงตำนานและความเชื่อดั้งเดิมของไทย</span>
+            </label>
+            <label class="option-card" data-field="storyType" data-value="folk-ghost">
+              <input type="radio" name="storyType" value="folk-ghost" hidden />
+              <span class="card-icon">🏚️</span>
+              <span class="card-label">ผีชาวบ้าน</span>
+              <span class="card-desc">เรื่องเล่าพื้นบ้าน เรียบง่ายแต่น่ากลัว</span>
+            </label>
+            <label class="option-card" data-field="storyType" data-value="modern-ghost">
+              <input type="radio" name="storyType" value="modern-ghost" hidden />
+              <span class="card-icon">🏙️</span>
+              <span class="card-label">ผีสมัยใหม่</span>
+              <span class="card-desc">ผีในยุคปัจจุบัน เมือง อาคาร ห้องพัก</span>
+            </label>
+            <label class="option-card" data-field="storyType" data-value="mixed">
+              <input type="radio" name="storyType" value="mixed" hidden />
+              <span class="card-icon">⚡</span>
+              <span class="card-label">ผสมผสาน</span>
+              <span class="card-desc">รวมหลายสไตล์เข้าด้วยกัน</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 2: Ghost Type -->
+        <div class="step hidden" id="step-2">
+          <h2 class="step-title">ประเภทผีหรือสิ่งชั่วร้าย</h2>
+          <p class="step-sub">จะให้พบเจออะไร?</p>
+          <div class="card-grid card-grid-3">
+            <label class="option-card" data-field="ghostType" data-value="ai-choose">
+              <input type="radio" name="ghostType" value="ai-choose" hidden />
+              <span class="card-icon">✨</span>
+              <span class="card-label">ให้ AI เลือกให้</span>
+              <span class="card-desc">เชื่อมือตี๋น้อย</span>
+            </label>
+            <label class="option-card" data-field="ghostType" data-value="mae-nak">
+              <input type="radio" name="ghostType" value="mae-nak" hidden />
+              <span class="card-icon">👰</span>
+              <span class="card-label">แม่นาค</span>
+              <span class="card-desc">วิญญาณภรรยาผู้ซื่อสัตย์</span>
+            </label>
+            <label class="option-card" data-field="ghostType" data-value="krasue">
+              <input type="radio" name="ghostType" value="krasue" hidden />
+              <span class="card-icon">😱</span>
+              <span class="card-label">กระสือ</span>
+              <span class="card-desc">หัวลอยพร้อมเครื่องในกลางคืน</span>
+            </label>
+            <label class="option-card" data-field="ghostType" data-value="phi-pop">
+              <input type="radio" name="ghostType" value="phi-pop" hidden />
+              <span class="card-icon">😈</span>
+              <span class="card-label">ผีปอบ</span>
+              <span class="card-desc">ผีที่สิงร่างและกินเครื่องใน</span>
+            </label>
+            <label class="option-card" data-field="ghostType" data-value="nang-tani">
+              <input type="radio" name="ghostType" value="nang-tani" hidden />
+              <span class="card-icon">🌿</span>
+              <span class="card-label">นางตานี</span>
+              <span class="card-desc">ผีนางในต้นกล้วย</span>
+            </label>
+            <label class="option-card" data-field="ghostType" data-value="nang-takian">
+              <input type="radio" name="ghostType" value="nang-takian" hidden />
+              <span class="card-icon">🌳</span>
+              <span class="card-label">นางตะเคียน</span>
+              <span class="card-desc">วิญญาณในต้นตะเคียน</span>
+            </label>
+            <label class="option-card" data-field="ghostType" data-value="phi-tai-hong">
+              <input type="radio" name="ghostType" value="phi-tai-hong" hidden />
+              <span class="card-icon">⚰️</span>
+              <span class="card-label">ผีตายโหง</span>
+              <span class="card-desc">ผีที่ตายอย่างน่าสยดสยอง</span>
+            </label>
+            <label class="option-card" data-field="ghostType" data-value="phi-dek">
+              <input type="radio" name="ghostType" value="phi-dek" hidden />
+              <span class="card-icon">🧒</span>
+              <span class="card-label">ผีเด็ก</span>
+              <span class="card-desc">วิญญาณเด็กที่ยังเร่ร่อน</span>
+            </label>
+            <label class="option-card" data-field="ghostType" data-value="vengeful">
+              <input type="radio" name="ghostType" value="vengeful" hidden />
+              <span class="card-icon">🔥</span>
+              <span class="card-label">วิญญาณแก้แค้น</span>
+              <span class="card-desc">มาเพื่อแก้แค้นผู้ทำร้าย</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 3: Character -->
+        <div class="step hidden" id="step-3">
+          <h2 class="step-title">ตัวละครหลักของเรื่อง</h2>
+          <p class="step-sub">บอกเราเกี่ยวกับตัวเอก</p>
+          <div class="form-group">
+            <label class="form-label">ชื่อตัวละคร</label>
+            <div class="name-row">
+              <input type="text" id="characterName" class="form-input" placeholder="ใส่ชื่อที่ต้องการ" />
+              <label class="ai-name-toggle">
+                <input type="checkbox" id="generateName" />
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                <span>ให้ AI คิดชื่อให้</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">อายุ</label>
+              <input type="number" id="characterAge" class="form-input" placeholder="เช่น 28" min="5" max="90" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">เพศ</label>
+              <div class="radio-row">
+                <label class="radio-pill"><input type="radio" name="characterGender" value="male" /> ชาย</label>
+                <label class="radio-pill"><input type="radio" name="characterGender" value="female" /> หญิง</label>
+                <label class="radio-pill"><input type="radio" name="characterGender" value="other" /> ไม่ระบุ</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">อาชีพ</label>
+            <select id="characterJob" class="form-input form-select">
+              <option value="">-- เลือกอาชีพ --</option>
+              <option>นักเรียน/นักศึกษา</option>
+              <option>ครู/อาจารย์</option>
+              <option>แพทย์/พยาบาล</option>
+              <option>ตำรวจ/ทหาร</option>
+              <option>เกษตรกร</option>
+              <option>ช่าง/คนงาน</option>
+              <option>นักข่าว/ช่างภาพ</option>
+              <option>นักธุรกิจ</option>
+              <option>พระ/สงฆ์</option>
+              <option>หมอผี/นักพรต</option>
+              <option>ว่างงาน</option>
+              <option value="custom">อื่นๆ (พิมพ์เอง)</option>
+            </select>
+            <input type="text" id="characterJobCustom" class="form-input mt-8 hidden" placeholder="ระบุอาชีพ..." />
+          </div>
+        </div>
+
+        <!-- Step 4: Setting -->
+        <div class="step hidden" id="step-4">
+          <h2 class="step-title">ฉากหลักของเรื่อง</h2>
+          <p class="step-sub">เหตุการณ์เกิดขึ้นที่ไหน?</p>
+          <div class="card-grid card-grid-4">
+            <label class="option-card" data-field="setting" data-value="rural-village">
+              <input type="radio" name="setting" value="rural-village" hidden />
+              <span class="card-icon">🏘️</span>
+              <span class="card-label">หมู่บ้านชนบท</span>
+              <span class="card-desc">ทุ่งนา บ้านเก่า ป่าไผ่</span>
+            </label>
+            <label class="option-card" data-field="setting" data-value="city">
+              <input type="radio" name="setting" value="city" hidden />
+              <span class="card-icon">🏙️</span>
+              <span class="card-label">ในเมือง</span>
+              <span class="card-desc">ตึกสูง ห้องพัก คอนโด</span>
+            </label>
+            <label class="option-card" data-field="setting" data-value="forest">
+              <input type="radio" name="setting" value="forest" hidden />
+              <span class="card-icon">🌲</span>
+              <span class="card-label">ป่า/ภูเขา</span>
+              <span class="card-desc">ป่าลึก ถ้ำ ทางเดินเขา</span>
+            </label>
+            <label class="option-card" data-field="setting" data-value="river">
+              <input type="radio" name="setting" value="river" hidden />
+              <span class="card-icon">🌊</span>
+              <span class="card-label">ริมน้ำ/แม่น้ำ</span>
+              <span class="card-desc">ริมคลอง แม่น้ำ เรือ</span>
+            </label>
+            <label class="option-card" data-field="setting" data-value="temple">
+              <input type="radio" name="setting" value="temple" hidden />
+              <span class="card-icon">⛩️</span>
+              <span class="card-label">วัดร้าง</span>
+              <span class="card-desc">วัดโบราณ สุสาน ศาลเพียงตา</span>
+            </label>
+            <label class="option-card" data-field="setting" data-value="abandoned-house">
+              <input type="radio" name="setting" value="abandoned-house" hidden />
+              <span class="card-icon">🏚️</span>
+              <span class="card-label">บ้านร้าง</span>
+              <span class="card-desc">บ้านเก่า คฤหาสน์รกร้าง</span>
+            </label>
+            <label class="option-card" data-field="setting" data-value="hospital">
+              <input type="radio" name="setting" value="hospital" hidden />
+              <span class="card-icon">🏥</span>
+              <span class="card-label">โรงพยาบาล</span>
+              <span class="card-desc">โรงพยาบาลเก่า ห้องผ่าตัด</span>
+            </label>
+            <label class="option-card" data-field="setting" data-value="school">
+              <input type="radio" name="setting" value="school" hidden />
+              <span class="card-icon">🏫</span>
+              <span class="card-label">โรงเรียน</span>
+              <span class="card-desc">ตึกเก่า ห้องน้ำ ห้องเรียน</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 5: Length -->
+        <div class="step hidden" id="step-5">
+          <h2 class="step-title">ความยาวเรื่องเล่า</h2>
+          <p class="step-sub">อยากฟังนานแค่ไหน?</p>
+          <div class="card-grid card-grid-2">
+            <label class="option-card length-card" data-field="storyLength" data-value="10">
+              <input type="radio" name="storyLength" value="10" hidden />
+              <span class="card-icon">⏱️</span>
+              <span class="card-label">10 นาที</span>
+              <span class="card-desc">เรื่องสั้น กระชับ ใจความครบ</span>
+              <span class="card-words">~1,000 คำ</span>
+            </label>
+            <label class="option-card length-card" data-field="storyLength" data-value="15">
+              <input type="radio" name="storyLength" value="15" hidden />
+              <span class="card-icon">🕐</span>
+              <span class="card-label">15 นาที</span>
+              <span class="card-desc">ความยาวพอดี มีรายละเอียด</span>
+              <span class="card-words">~1,500 คำ</span>
+            </label>
+            <label class="option-card length-card" data-field="storyLength" data-value="20">
+              <input type="radio" name="storyLength" value="20" hidden />
+              <span class="card-icon">🕑</span>
+              <span class="card-label">20 นาที</span>
+              <span class="card-desc">เรื่องยาว atmosphere เข้มข้น</span>
+              <span class="card-words">~2,000 คำ</span>
+            </label>
+            <label class="option-card length-card" data-field="storyLength" data-value="30">
+              <input type="radio" name="storyLength" value="30" hidden />
+              <span class="card-icon">🕒</span>
+              <span class="card-label">30 นาที</span>
+              <span class="card-desc">มหากาพย์สยองขวัญ ครบทุกอรรถรส</span>
+              <span class="card-words">~3,000 คำ</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 6: Additional Details -->
+        <div class="step hidden" id="step-6">
+          <h2 class="step-title">รายละเอียดเพิ่มเติม</h2>
+          <p class="step-sub">อยากให้มีอะไรพิเศษในเรื่อง? (ไม่บังคับ)</p>
+          <div class="summary-box" id="storySummary"></div>
+          <div class="form-group">
+            <textarea
+              id="additionalDetails"
+              class="form-textarea"
+              rows="5"
+              placeholder="เช่น ต้องการ plot twist, ให้มีฉากฝนตกหนัก, อยากให้ตัวละครมีสุนัข, ต้องการ ending แบบเปิด, มีตัวร้ายที่เป็นคน ฯลฯ"
+            ></textarea>
+          </div>
+          <button class="btn-generate" id="btnGenerate">
+            🕯️ สร้างเรื่องเล่า
+          </button>
+        </div>
+
+      </div><!-- /quiz-body -->
+
+      <div class="quiz-nav" id="quizNav">
+        <button class="btn-nav btn-prev" id="btnPrev">← ย้อนกลับ</button>
+        <button class="btn-nav btn-next" id="btnNext">ถัดไป →</button>
+      </div>
+    </section>
+
+    <!-- ========== GENERATING ========== -->
+    <section id="page-generating" class="page">
+      <div class="gen-candles">
+        <div class="candle big"><div class="flame"></div><div class="candle-body"></div></div>
+        <div class="candle"><div class="flame"></div><div class="candle-body"></div></div>
+        <div class="candle big"><div class="flame"></div><div class="candle-body"></div></div>
+      </div>
+      <p class="gen-title">ตี๋น้อยกำลังเล่าเรื่อง...</p>
+      <p class="gen-sub">กรุณารอสักครู่ครับ</p>
+      <div class="gen-dots"><span></span><span></span><span></span></div>
+    </section>
+
+    <!-- ========== STORY ========== -->
+    <section id="page-story" class="page">
+      <div class="story-header">
+        <div class="story-meta" id="storyMeta"></div>
+        <div class="story-divider">🕯️ ————————————————— 🕯️</div>
+      </div>
+      <div class="story-body" id="storyBody"></div>
+      <div class="story-footer" id="storyFooter" style="display:none">
+        <div class="story-divider">🕯️ ————————————————— 🕯️</div>
+        <div class="story-actions">
+          <button class="btn-action" id="btnCopy">📋 คัดลอกเรื่อง</button>
+          <button class="btn-action btn-primary" id="btnRestart">🔄 สร้างเรื่องใหม่</button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /app -->
+  <script src="script.js"></script>
+</body>
+</html>
