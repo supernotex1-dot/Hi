@@ -78,7 +78,9 @@ app.post('/api/generate-story', async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
-  const send = (d) => res.write(`data: ${JSON.stringify(d)}\n\n`);
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+  const send = (d) => { res.write(`data: ${JSON.stringify(d)}\n\n`); };
 
   try {
     const stream = await groq.chat.completions.create({
