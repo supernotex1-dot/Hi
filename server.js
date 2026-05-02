@@ -136,6 +136,7 @@ app.post('/api/generate-story', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Teenoihub Ghost Stories running at http://localhost:${PORT}`);
+  console.log(`เข้าจาก IP อื่นได้ที่ http://<your-ip>:${PORT}`);
 });
