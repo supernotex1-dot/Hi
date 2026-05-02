@@ -6,12 +6,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim().replace(/^["']|["']$/g, '');
-if (!GROQ_API_KEY) {
-  console.error('ERROR: GROQ_API_KEY is not set.');
+const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+if (!GEMINI_API_KEY) {
+  console.error('ERROR: GEMINI_API_KEY is not set.');
   process.exit(1);
 }
-console.log('GROQ_API_KEY starts with:', GROQ_API_KEY.slice(0, 8), '| length:', GROQ_API_KEY.length);
+console.log('GEMINI_API_KEY starts with:', GEMINI_API_KEY.slice(0, 8), '| length:', GEMINI_API_KEY.length);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -74,20 +74,19 @@ ${p.additionalDetails ? `รายละเอียดพิเศษ: ${p.addi
 เขียนให้ครบ: intro ทักทาย → warm-up → เนื้อเรื่อง → outro กล่าวลา`;
 }
 
-function groqRequest(messages, maxTokens) {
+function geminiRequest(userPrompt, maxTokens) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages,
-      max_tokens: maxTokens,
+      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.9 },
     });
 
     const options = {
-      hostname: 'api.groq.com',
-      path: '/openai/v1/chat/completions',
+      hostname: 'generativelanguage.googleapis.com',
+      path: `/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
       },
@@ -102,7 +101,8 @@ function groqRequest(messages, maxTokens) {
           if (res.statusCode >= 400) {
             reject(new Error(parsed.error?.message || `HTTP ${res.statusCode}`));
           } else {
-            resolve(parsed);
+            const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            resolve(text);
           }
         } catch (e) {
           reject(new Error(`Parse error: ${data.slice(0, 200)}`));
@@ -119,8 +119,8 @@ function groqRequest(messages, maxTokens) {
 
 app.get('/api/health', async (req, res) => {
   try {
-    const result = await groqRequest([{ role: 'user', content: 'say ok' }], 5);
-    res.json({ status: 'ok', groq: 'connected', reply: result.choices[0]?.message?.content });
+    const text = await geminiRequest('say ok in one word', 10);
+    res.json({ status: 'ok', gemini: 'connected', reply: text });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
@@ -129,18 +129,11 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/generate-story', async (req, res) => {
   try {
     const wordCount = WORD_COUNT_MAP[req.body.storyLength] || 1500;
-    const maxTokens = Math.min(wordCount * 3, 8000);
-    const result = await groqRequest(
-      [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: buildPrompt(req.body) },
-      ],
-      maxTokens
-    );
-    const text = result.choices[0]?.message?.content || '';
+    const maxTokens = Math.min(wordCount * 3, 8192);
+    const text = await geminiRequest(buildPrompt(req.body), maxTokens);
     res.json({ text });
   } catch (err) {
-    console.error('Groq error:', err.message);
+    console.error('Gemini error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
