@@ -6,10 +6,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-if (!process.env.GROQ_API_KEY) {
+const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+if (!GROQ_API_KEY) {
   console.error('ERROR: GROQ_API_KEY is not set.');
   process.exit(1);
 }
+console.log('GROQ_API_KEY starts with:', GROQ_API_KEY.slice(0, 8), '| length:', GROQ_API_KEY.length);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -85,7 +87,7 @@ function groqRequest(messages, maxTokens) {
       path: '/openai/v1/chat/completions',
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
       },
