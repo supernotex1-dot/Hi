@@ -1,17 +1,17 @@
 require('dotenv').config();
 const express = require('express');
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('ERROR: ANTHROPIC_API_KEY is not set. Copy .env.example to .env and add your key.');
+if (!process.env.GEMINI_API_KEY) {
+  console.error('ERROR: GEMINI_API_KEY is not set. Copy .env.example to .env and add your key.');
   process.exit(1);
 }
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -112,24 +112,20 @@ app.post('/api/generate-story', async (req, res) => {
   const sendEvent = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
   try {
-    const prompt = buildPrompt(req.body);
-
-    const stream = anthropic.messages.stream({
-      model: 'claude-opus-4-7',
-      max_tokens: 8000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: prompt }],
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      systemInstruction: SYSTEM_PROMPT,
     });
 
-    stream.on('text', (text) => sendEvent({ text }));
-    stream.on('finalMessage', () => {
-      sendEvent({ done: true });
-      res.end();
-    });
-    stream.on('error', (err) => {
-      sendEvent({ error: err.message });
-      res.end();
-    });
+    const result = await model.generateContentStream(buildPrompt(req.body));
+
+    for await (const chunk of result.stream) {
+      const text = chunk.text();
+      if (text) sendEvent({ text });
+    }
+
+    sendEvent({ done: true });
+    res.end();
   } catch (err) {
     sendEvent({ error: err.message });
     res.end();
@@ -138,5 +134,4 @@ app.post('/api/generate-story', async (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Teenoihub Ghost Stories running at http://localhost:${PORT}`);
-  console.log(`เข้าจาก IP อื่นได้ที่ http://<your-ip>:${PORT}`);
 });
