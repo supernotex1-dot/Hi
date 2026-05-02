@@ -129,7 +129,7 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/generate-story', async (req, res) => {
   try {
     const wordCount = WORD_COUNT_MAP[req.body.storyLength] || 1500;
-    const maxTokens = Math.min(wordCount * 5, 32000);
+    const maxTokens = Math.min(wordCount * 3, 8000);
     const result = await groqRequest(
       [
         { role: 'system', content: SYSTEM_PROMPT },
