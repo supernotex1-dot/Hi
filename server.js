@@ -34,7 +34,15 @@ Rule of Horror:
 - ใช้รายละเอียดธรรมดาที่กลายเป็นน่ากลัว
 - ตัวละครต้องมีชีวิต รู้สึกได้ว่าเป็นคนจริงๆ
 
-ห้าม: ใช้ markdown, asterisk, heading ในเนื้อเรื่อง`;
+ห้าม: ใช้ markdown, asterisk, heading ในเนื้อเรื่อง, ใช้ emoji หรือสัญลักษณ์พิเศษ, ใช้ภาษาอื่นนอกจากภาษาไทยและอังกฤษ (เช่น จีน ญี่ปุ่น)`;
+
+function cleanText(text) {
+  return text
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+    .replace(/[\u{2600}-\u{27BF}]/gu, '')
+    .replace(/[\u{FE00}-\u{FEFF}]/gu, '')
+    .replace(/[^ -~฀-๿\n\r]/gu, '');
+}
 
 const GHOST_TYPE_MAP = {
   'ai-choose': 'ให้เลือกผีที่เหมาะสมเองตามดุลพินิจ',
@@ -134,14 +142,14 @@ app.post('/api/generate-story', async (req, res) => {
   try {
     const wordCount = WORD_COUNT_MAP[req.body.storyLength] || 1500;
     const maxTokens = Math.min(wordCount * 3, 8000);
-    const text = await groqRequest(
+    const raw = await groqRequest(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: buildPrompt(req.body) },
       ],
       maxTokens
     );
-    res.json({ text });
+    res.json({ text: cleanText(raw) });
   } catch (err) {
     console.error('Groq error:', err.message);
     res.status(500).json({ error: err.message });
@@ -166,14 +174,14 @@ ${previousStory}
 - ความยาวประมาณ ${wordCount} คำ
 - จบด้วย outro และ "อย่าลืม subscribe Teenoihub นะครับ"`;
 
-    const text = await groqRequest(
+    const raw = await groqRequest(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: continuePrompt },
       ],
       maxTokens
     );
-    res.json({ text });
+    res.json({ text: cleanText(raw) });
   } catch (err) {
     console.error('Groq continue error:', err.message);
     res.status(500).json({ error: err.message });
