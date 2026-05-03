@@ -7,6 +7,7 @@ const state = {
   data: {
     storyType: null,
     ghostType: null,
+    generateCharacter: null,
     characterName: '',
     generateName: false,
     characterAge: '',
@@ -90,12 +91,16 @@ function isCurrentStepValid() {
   switch (state.currentStep) {
     case 1: return !!state.data.storyType;
     case 2: return !!state.data.ghostType;
-    case 3: return (
-      (state.data.generateName || state.data.characterName.trim()) &&
-      state.data.characterAge &&
-      state.data.characterGender &&
-      state.data.characterJob.trim()
-    );
+    case 3: {
+      if (!state.data.generateCharacter) return false;
+      if (state.data.generateCharacter === 'true') return true;
+      return (
+        (state.data.generateName || state.data.characterName.trim()) &&
+        state.data.characterAge &&
+        state.data.characterGender &&
+        state.data.characterJob.trim()
+      );
+    }
     case 4: return !!state.data.setting;
     case 5: return !!state.data.storyLength;
     case 6: return true;
@@ -116,6 +121,11 @@ document.querySelectorAll('.option-card').forEach(card => {
     state.data[field] = value;
     const radio = card.querySelector('input[type="radio"]');
     if (radio) radio.checked = true;
+
+    if (field === 'generateCharacter') {
+      const form = document.getElementById('characterForm');
+      if (form) form.classList.toggle('hidden', value === 'true');
+    }
 
     updateNavButtons();
   });
@@ -180,8 +190,7 @@ function buildSummary() {
   els.storySummary.innerHTML = `
     <strong>ประเภทเรื่อง:</strong> ${LABELS.storyType[d.storyType] || d.storyType} &nbsp;|&nbsp;
     <strong>ผี:</strong> ${LABELS.ghostType[d.ghostType] || d.ghostType}<br/>
-    <strong>ตัวละคร:</strong> ${d.generateName ? '(AI คิดชื่อให้)' : d.characterName}
-    อายุ ${d.characterAge} ปี เพศ${LABELS.gender[d.characterGender]} อาชีพ${d.characterJob}<br/>
+    <strong>ตัวละคร:</strong> ${d.generateCharacter === 'true' ? '(AI สร้างตัวละครทั้งหมด)' : `${d.generateName ? '(AI คิดชื่อให้)' : d.characterName} อายุ ${d.characterAge} ปี เพศ${LABELS.gender[d.characterGender]} อาชีพ${d.characterJob}`}<br/>
     <strong>ฉาก:</strong> ${LABELS.setting[d.setting] || d.setting} &nbsp;|&nbsp;
     <strong>ความยาว:</strong> ${d.storyLength} นาที
   `;
@@ -223,7 +232,9 @@ els.btnCopy.addEventListener('click', () => {
 // ===== Reset =====
 function resetState() {
   state.currentStep = 1;
-  state.data = { storyType: null, ghostType: null, characterName: '', generateName: false, characterAge: '', characterGender: null, characterJob: '', setting: null, storyLength: null, additionalDetails: '' };
+  state.data = { storyType: null, ghostType: null, generateCharacter: null, characterName: '', generateName: false, characterAge: '', characterGender: null, characterJob: '', setting: null, storyLength: null, additionalDetails: '' };
+  const charForm = document.getElementById('characterForm');
+  if (charForm) charForm.classList.add('hidden');
   document.querySelectorAll('.option-card.selected').forEach(c => c.classList.remove('selected'));
   document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
   els.characterName.value = '';

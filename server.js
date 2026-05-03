@@ -6,12 +6,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const OPENAI_API_KEY = (process.env.DEEPSEEK_API_KEY || '').trim().replace(/^["']|["']$/g, '');
-if (!OPENAI_API_KEY) {
-  console.error('ERROR: DEEPSEEK_API_KEY is not set.');
+const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+if (!GROQ_API_KEY) {
+  console.error('ERROR: GROQ_API_KEY is not set.');
   process.exit(1);
 }
-console.log('DEEPSEEK_API_KEY starts with:', OPENAI_API_KEY.slice(0, 8), '| length:', OPENAI_API_KEY.length);
+console.log('GROQ_API_KEY starts with:', GROQ_API_KEY.slice(0, 8), '| length:', GROQ_API_KEY.length);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -58,15 +58,19 @@ const WORD_COUNT_MAP = { '10': 1000, '15': 1500, '20': 2000, '30': 3000, '60': 6
 
 function buildPrompt(p) {
   const wordCount = WORD_COUNT_MAP[p.storyLength] || 1500;
+  const charBlock = p.generateCharacter === 'true'
+    ? `ตัวละครหลัก: ให้ AI สร้างตัวละครที่เหมาะสมเองทั้งหมด (ชื่อภาษาไทย อายุ เพศ อาชีพ) ให้เข้ากับเรื่องและผีที่เลือก`
+    : `ตัวละครหลัก:
+  - ชื่อ: ${p.generateName ? 'คิดชื่อภาษาไทยที่เหมาะสมเอง' : p.characterName}
+  - อายุ: ${p.characterAge} ปี
+  - เพศ: ${GENDER_MAP[p.characterGender] || p.characterGender}
+  - อาชีพ: ${p.characterJob}`;
+
   return `เขียนเรื่องเล่าผีไทยในสไตล์ตี๋น้อย Teenoihub:
 
 ประเภทเรื่อง: ${STORY_TYPE_MAP[p.storyType] || p.storyType}
 ประเภทผี: ${GHOST_TYPE_MAP[p.ghostType] || p.ghostType}
-ตัวละครหลัก:
-  - ชื่อ: ${p.generateName ? 'คิดชื่อภาษาไทยที่เหมาะสมเอง' : p.characterName}
-  - อายุ: ${p.characterAge} ปี
-  - เพศ: ${GENDER_MAP[p.characterGender] || p.characterGender}
-  - อาชีพ: ${p.characterJob}
+${charBlock}
 ฉากหลัง: ${SETTING_MAP[p.setting] || p.setting}
 ความยาว: ประมาณ ${wordCount} คำ (${p.storyLength} นาที)
 ${p.additionalDetails ? `รายละเอียดพิเศษ: ${p.additionalDetails}` : ''}
@@ -74,21 +78,20 @@ ${p.additionalDetails ? `รายละเอียดพิเศษ: ${p.addi
 เขียนให้ครบ: intro ทักทาย → warm-up → เนื้อเรื่อง → outro กล่าวลา`;
 }
 
-function openaiRequest(messages, maxTokens) {
+function groqRequest(messages, maxTokens) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'deepseek-chat',
+      model: 'llama-3.3-70b-versatile',
       messages,
       max_tokens: maxTokens,
-      temperature: 0.9,
     });
 
     const options = {
-      hostname: 'api.deepseek.com',
-      path: '/v1/chat/completions',
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
       },
@@ -120,8 +123,8 @@ function openaiRequest(messages, maxTokens) {
 
 app.get('/api/health', async (req, res) => {
   try {
-    const text = await openaiRequest([{ role: 'user', content: 'say ok' }], 5);
-    res.json({ status: 'ok', deepseek: 'connected', reply: text });
+    const text = await groqRequest([{ role: 'user', content: 'say ok' }], 5);
+    res.json({ status: 'ok', groq: 'connected', reply: text });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
   }
@@ -130,8 +133,8 @@ app.get('/api/health', async (req, res) => {
 app.post('/api/generate-story', async (req, res) => {
   try {
     const wordCount = WORD_COUNT_MAP[req.body.storyLength] || 1500;
-    const maxTokens = Math.min(wordCount * 3, 16000);
-    const text = await openaiRequest(
+    const maxTokens = Math.min(wordCount * 3, 8000);
+    const text = await groqRequest(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: buildPrompt(req.body) },
@@ -140,7 +143,7 @@ app.post('/api/generate-story', async (req, res) => {
     );
     res.json({ text });
   } catch (err) {
-    console.error('OpenAI error:', err.message);
+    console.error('Groq error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

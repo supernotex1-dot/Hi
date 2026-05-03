@@ -146,7 +146,22 @@
         <!-- Step 3: Character -->
         <div class="step hidden" id="step-3">
           <h2 class="step-title">ตัวละครหลักของเรื่อง</h2>
-          <p class="step-sub">บอกเราเกี่ยวกับตัวเอก</p>
+          <p class="step-sub">อยากสร้างตัวละครเองหรือให้ AI สร้างให้?</p>
+          <div class="card-grid card-grid-2" style="margin-bottom:1.5rem">
+            <label class="option-card" data-field="generateCharacter" data-value="false">
+              <input type="radio" name="generateCharacter" value="false" hidden />
+              <span class="card-icon">✏️</span>
+              <span class="card-label">สร้างเอง</span>
+              <span class="card-desc">กำหนดชื่อ อายุ เพศ อาชีพเอง</span>
+            </label>
+            <label class="option-card" data-field="generateCharacter" data-value="true">
+              <input type="radio" name="generateCharacter" value="true" hidden />
+              <span class="card-icon">🤖</span>
+              <span class="card-label">ให้ AI สร้างให้</span>
+              <span class="card-desc">AI เลือกตัวละครที่เหมาะกับเรื่องเอง</span>
+            </label>
+          </div>
+          <div id="characterForm" class="hidden">
           <div class="form-group">
             <label class="form-label">ชื่อตัวละคร</label>
             <div class="name-row">
@@ -191,6 +206,7 @@
             </select>
             <input type="text" id="characterJobCustom" class="form-input mt-8 hidden" placeholder="ระบุอาชีพ..." />
           </div>
+          </div><!-- end characterForm -->
         </div>
 
         <!-- Step 4: Setting -->
