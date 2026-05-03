@@ -34,7 +34,7 @@ Rule of Horror:
 - ใช้รายละเอียดธรรมดาที่กลายเป็นน่ากลัว
 - ตัวละครต้องมีชีวิต รู้สึกได้ว่าเป็นคนจริงๆ
 
-ห้าม: ใช้ markdown, asterisk, heading ในเนื้อเรื่อง, ใช้ emoji หรือสัญลักษณ์พิเศษ, ใช้ภาษาอื่นนอกจากภาษาไทยและอังกฤษ (เช่น จีน ญี่ปุ่น)`;
+ห้าม: ใช้ markdown, asterisk, heading ในเนื้อเรื่อง, ใช้ emoji หรือสัญลักษณ์พิเศษ, ใช้ภาษาอื่นนอกจากภาษาไทยและอังกฤษ (เช่น จีน ญี่ปุ่น), ใช้คำว่า "ฉัน" (ต้องใช้ "ผม" เท่านั้นสำหรับการพูดถึงตัวเอง), ใช้วลีซ้ำๆ หรือคำคุณศัพท์ที่ฟุ่มเฟือยซ้ำๆ เช่น "น่ากลัวและน่าเกรงขาม" หรือ "เย็นชืดและน่าสะพรึงกลัว"`;
 
 function cleanText(text) {
   return text
@@ -138,7 +138,7 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-function buildDescriptionPrompt(p, title) {
+function buildDescriptionPrompt(p, title, storyExcerpt) {
   const epNum = p.epNumber ? `EP.${String(p.epNumber).padStart(2, '0')}` : 'EP.??';
   const prevLinks = p.prevEpLinks ? p.prevEpLinks.trim() : '';
   const prevSection = prevLinks
@@ -152,6 +152,7 @@ function buildDescriptionPrompt(p, title) {
 - EP: ${epNum}
 - ประเภทผี: ${GHOST_TYPE_MAP[p.ghostType] || p.ghostType}
 - ฉาก: ${SETTING_MAP[p.setting] || p.setting}
+${storyExcerpt ? `\nเนื้อเรื่องตอนต้น (ใช้สร้างคำอธิบายให้ตรงกับเรื่อง):\n${storyExcerpt}\n` : ''}
 
 รูปแบบที่ต้องการ (เขียนตามนี้ทุกส่วน ห้ามเพิ่มหัวข้อ):
 [ย่อหน้า hook 2-3 ประโยค สร้างบรรยากาศน่ากลัว เชิญชวนดูคลิป]
@@ -198,7 +199,8 @@ app.post('/api/generate-story', async (req, res) => {
 
     let description = '';
     try {
-      description = await groqRequest([{ role: 'user', content: buildDescriptionPrompt(p, title) }], 1500);
+      const storyExcerpt = text.slice(0, 800);
+      description = cleanText(await groqRequest([{ role: 'user', content: buildDescriptionPrompt(p, title, storyExcerpt) }], 1500));
     } catch (e) {
       console.error('Description gen error:', e.message);
     }
