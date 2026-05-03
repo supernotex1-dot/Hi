@@ -16,6 +16,8 @@ const state = {
     setting: null,
     storyLength: null,
     additionalDetails: '',
+    epNumber: '',
+    prevEpLinks: '',
   },
 };
 
@@ -42,6 +44,13 @@ const els = {
   btnCopy: document.getElementById('btnCopy'),
   btnSequel: document.getElementById('btnSequel'),
   btnRestart: document.getElementById('btnRestart'),
+  btnCopyDesc: document.getElementById('btnCopyDesc'),
+  epNumber: document.getElementById('epNumber'),
+  prevEpLinks: document.getElementById('prevEpLinks'),
+  storyTitleDisplay: document.getElementById('storyTitleDisplay'),
+  storyTitleText: document.getElementById('storyTitleText'),
+  descSection: document.getElementById('descSection'),
+  descBody: document.getElementById('descBody'),
   characterName: document.getElementById('characterName'),
   generateName: document.getElementById('generateName'),
   characterAge: document.getElementById('characterAge'),
@@ -178,6 +187,21 @@ els.additionalDetails.addEventListener('input', () => {
   state.data.additionalDetails = els.additionalDetails.value;
 });
 
+els.epNumber.addEventListener('input', () => {
+  state.data.epNumber = els.epNumber.value;
+});
+
+els.prevEpLinks.addEventListener('input', () => {
+  state.data.prevEpLinks = els.prevEpLinks.value;
+});
+
+els.btnCopyDesc.addEventListener('click', () => {
+  navigator.clipboard.writeText(els.descBody.textContent).then(() => {
+    els.btnCopyDesc.textContent = '✅ คัดลอกแล้ว!';
+    setTimeout(() => { els.btnCopyDesc.textContent = '📋 คัดลอกคำอธิบาย'; }, 2000);
+  });
+});
+
 // ===== Summary (Step 6) =====
 const LABELS = {
   storyType: { 'rule-of-horror': 'Rule of Horror', 'thai-legend': 'ตำนานผีไทย', 'folk-ghost': 'ผีชาวบ้าน', 'modern-ghost': 'ผีสมัยใหม่', 'mixed': 'ผสมผสาน' },
@@ -249,6 +273,12 @@ function resetState() {
   els.characterJobCustom.value = '';
   els.characterJobCustom.classList.add('hidden');
   els.additionalDetails.value = '';
+  els.epNumber.value = '';
+  els.prevEpLinks.value = '';
+  els.storyTitleDisplay.style.display = 'none';
+  els.storyTitleText.textContent = '';
+  els.descSection.style.display = 'none';
+  els.descBody.textContent = '';
   els.storyBody.textContent = '';
   els.storyFooter.style.display = 'none';
 }
@@ -303,8 +333,12 @@ async function generateStory() {
     fullStoryText = data.text || '';
     showPage('story');
     buildStoryMeta();
+    if (data.title) {
+      els.storyTitleText.textContent = data.title;
+      els.storyTitleDisplay.style.display = 'block';
+    }
     renderStory(fullStoryText);
-    finishStory();
+    finishStory(data.description);
   } catch (err) {
     showPage('story');
     els.storyBody.innerHTML = `<p style="color:#cc4444;">เกิดข้อผิดพลาด: ${err.message}</p>`;
@@ -323,13 +357,16 @@ function renderStory(text) {
   window.scrollTo(0, document.body.scrollHeight);
 }
 
-function finishStory() {
+function finishStory(description) {
   if (els.storyFooter.style.display === 'block') return;
   renderStory(fullStoryText);
-  // Remove cursor after done
   const cursor = els.storyBody.querySelector('.cursor');
   if (cursor) cursor.remove();
   els.storyFooter.style.display = 'block';
+  if (description) {
+    els.descBody.textContent = description;
+    els.descSection.style.display = 'block';
+  }
   window.scrollTo(0, document.body.scrollHeight);
 }
 

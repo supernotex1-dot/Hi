@@ -138,18 +138,72 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+function buildDescriptionPrompt(p, title) {
+  const epNum = p.epNumber ? `EP.${String(p.epNumber).padStart(2, '0')}` : 'EP.??';
+  const prevLinks = p.prevEpLinks ? p.prevEpLinks.trim() : '';
+  const prevSection = prevLinks
+    ? prevLinks.split('\n').filter(Boolean).map(l => `📌 ${l.trim()}`).join('\n')
+    : '';
+
+  return `สร้างคำอธิบายคลิป YouTube สำหรับช่อง Teenoihub ของตี๋น้อย
+
+ข้อมูลเรื่อง:
+- ชื่อเรื่อง: ${title}
+- EP: ${epNum}
+- ประเภทผี: ${GHOST_TYPE_MAP[p.ghostType] || p.ghostType}
+- ฉาก: ${SETTING_MAP[p.setting] || p.setting}
+
+รูปแบบที่ต้องการ (เขียนตามนี้ทุกส่วน ห้ามเพิ่มหัวข้อ):
+[ย่อหน้า hook 2-3 ประโยค สร้างบรรยากาศน่ากลัว เชิญชวนดูคลิป]
+
+[เล่าตัวละครหลักและจุดเริ่มต้นเรื่อง 1-2 ย่อหน้า อย่าเฉลยตอนจบ]
+
+[กล่าวถึง "กฎ" หรือความลึกลับสำคัญของเรื่อง จบด้วยประโยคค้างไว้ให้อยากรู้]
+
+——————————————————
+⚠️ เรื่องนี้มาจากผู้ที่ประสบเหตุด้วยตัวเองจริงๆ
+ชื่อและสถานที่ถูกเปลี่ยนแปลงเพื่อปกป้องตัวตน
+——————————————————
+
+🔔 กด Subscribe ไว้เลยนะครับ
+เพราะยังมีอีกหลายเรื่องที่เกิดขึ้นจริง และน่ากลัวกว่านี้อีกมาก
+
+${prevSection ? prevSection + '\n\n——————————————————\n' : ''}
+🎵 Original Sound Background : https://youtu.be/oO0DvpIWhd0?si=hGcf_OQoznZ3Ly4v
+
+#ผีไทย #เรื่องเล่าสยองขวัญ #${GHOST_TYPE_MAP[p.ghostType]?.replace(/\s/g, '') || 'ผีไทย'}
+#RuleOfHorror #กฎต้องห้าม #horror
+#เรื่องจริง #TeenoiHub #ตี๋น้อยฮับ
+#กฎสยองขวัญ #horrorThailand #${SETTING_MAP[p.setting]?.replace(/[\s\/]/g, '') || 'สยองขวัญ'}
+#ruleofhorror #เรื่องลึกลับ
+
+เขียนเฉพาะเนื้อหาตามรูปแบบข้างต้น ห้ามใส่คำอธิบายเพิ่ม`;
+}
+
 app.post('/api/generate-story', async (req, res) => {
   try {
-    const wordCount = WORD_COUNT_MAP[req.body.storyLength] || 1500;
+    const p = req.body;
+    const wordCount = WORD_COUNT_MAP[p.storyLength] || 1500;
     const maxTokens = Math.min(wordCount * 3, 8000);
-    const raw = await groqRequest(
-      [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: buildPrompt(req.body) },
-      ],
-      maxTokens
-    );
-    res.json({ text: cleanText(raw) });
+
+    const titlePrompt = `สร้างชื่อเรื่องสั้นๆ กระชับ น่ากลัว ภาษาไทย สำหรับเรื่องผีไทยประเภท "${STORY_TYPE_MAP[p.storyType] || p.storyType}" ผี: ${GHOST_TYPE_MAP[p.ghostType] || p.ghostType} ฉาก: ${SETTING_MAP[p.setting] || p.setting} ตอบเฉพาะชื่อเรื่องอย่างเดียว ไม่ต้องมีคำอธิบาย`;
+
+    const [raw, titleRaw] = await Promise.all([
+      groqRequest([{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: buildPrompt(p) }], maxTokens),
+      groqRequest([{ role: 'user', content: titlePrompt }], 60),
+    ]);
+
+    const text = cleanText(raw);
+    const title = cleanText(titleRaw).trim().replace(/^["'""'']+|["'""'']+$/g, '');
+
+    let description = '';
+    try {
+      description = await groqRequest([{ role: 'user', content: buildDescriptionPrompt(p, title) }], 1500);
+    } catch (e) {
+      console.error('Description gen error:', e.message);
+    }
+
+    res.json({ text, title, description });
   } catch (err) {
     console.error('Groq error:', err.message);
     res.status(500).json({ error: err.message });

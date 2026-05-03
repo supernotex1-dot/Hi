@@ -314,11 +314,28 @@
           <p class="step-sub">อยากให้มีอะไรพิเศษในเรื่อง? (ไม่บังคับ)</p>
           <div class="summary-box" id="storySummary"></div>
           <div class="form-group">
+            <label class="form-label">รายละเอียดพิเศษ</label>
             <textarea
               id="additionalDetails"
               class="form-textarea"
-              rows="5"
-              placeholder="เช่น ต้องการ plot twist, ให้มีฉากฝนตกหนัก, อยากให้ตัวละครมีสุนัข, ต้องการ ending แบบเปิด, มีตัวร้ายที่เป็นคน ฯลฯ"
+              rows="3"
+              placeholder="เช่น ต้องการ plot twist, ให้มีฉากฝนตกหนัก, อยากให้ตัวละครมีสุนัข ฯลฯ"
+            ></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">EP ที่เท่าไร</label>
+              <input type="number" id="epNumber" class="form-input" placeholder="เช่น 5" min="1" max="999" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ลิ้งค์ EP ก่อนหน้า <span style="font-weight:400;opacity:.6">(ไม่บังคับ)</span></label>
+            <p class="form-hint">วางบรรทัดละ 1 EP รูปแบบ: EP.01 — ชื่อ : URL</p>
+            <textarea
+              id="prevEpLinks"
+              class="form-textarea"
+              rows="4"
+              placeholder="EP.01 — ห้อง 407 : https://youtu.be/...&#10;EP.02 — กฎ 13 ข้อของบ้านโพธิ์ดำ : https://youtu.be/..."
             ></textarea>
           </div>
           <button class="btn-generate" id="btnGenerate">
@@ -349,6 +366,9 @@
     <!-- ========== STORY ========== -->
     <section id="page-story" class="page">
       <div class="story-header">
+        <div class="story-title-display" id="storyTitleDisplay" style="display:none">
+          <h1 class="story-title-text" id="storyTitleText"></h1>
+        </div>
         <div class="story-meta" id="storyMeta"></div>
         <div class="story-divider">🕯️ ————————————————— 🕯️</div>
       </div>
@@ -359,6 +379,11 @@
           <button class="btn-action" id="btnCopy">📋 คัดลอกเรื่อง</button>
           <button class="btn-action btn-sequel" id="btnSequel">👻 สร้างภาคต่อ</button>
           <button class="btn-action btn-primary" id="btnRestart">🔄 สร้างเรื่องใหม่</button>
+        </div>
+        <div class="desc-section" id="descSection" style="display:none">
+          <div class="story-divider" style="margin:2rem 0 1rem">📺 ————— คำอธิบายคลิป YouTube ————— 📺</div>
+          <pre class="desc-body" id="descBody"></pre>
+          <button class="btn-action btn-desc-copy" id="btnCopyDesc">📋 คัดลอกคำอธิบาย</button>
         </div>
       </div>
     </section>
