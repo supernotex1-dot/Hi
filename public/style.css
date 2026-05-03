@@ -623,6 +623,18 @@ body::before {
   transform: translateY(-1px);
 }
 
+.btn-action.btn-sequel {
+  background: linear-gradient(135deg, #3a006b 0%, #1a0035 100%);
+  border-color: rgba(150,0,255,0.4);
+  color: #d4a0ff;
+  box-shadow: 0 2px 20px rgba(120,0,200,0.3);
+}
+.btn-action.btn-sequel:hover {
+  background: linear-gradient(135deg, #5500aa 0%, #3a006b 100%);
+  box-shadow: 0 4px 30px rgba(150,0,255,0.5);
+  transform: translateY(-1px);
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 480px) {
   .form-row { grid-template-columns: 1fr; }

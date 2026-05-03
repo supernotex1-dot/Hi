@@ -148,6 +148,38 @@ app.post('/api/generate-story', async (req, res) => {
   }
 });
 
+app.post('/api/continue-story', async (req, res) => {
+  try {
+    const { previousStory, data } = req.body;
+    const wordCount = WORD_COUNT_MAP[data.storyLength] || 1500;
+    const maxTokens = Math.min(wordCount * 3, 8000);
+    const continuePrompt = `นี่คือเรื่องผีที่เล่าไปแล้ว:
+
+${previousStory}
+
+---
+
+ตอนนี้ให้เขียน "ภาคต่อ" ของเรื่องนี้ในสไตล์ตี๋น้อย Teenoihub:
+- เริ่มด้วย "สวัสดีอีกครั้งครับ ผมตี๋น้อย วันนี้มาต่อเรื่องราวที่ค้างไว้..."
+- คงตัวละคร ฉาก และบรรยากาศจากเรื่องเดิมไว้
+- พัฒนาเรื่องราวต่อจากจุดที่จบไป อย่าเล่าซ้ำ
+- ความยาวประมาณ ${wordCount} คำ
+- จบด้วย outro และ "อย่าลืม subscribe Teenoihub นะครับ"`;
+
+    const text = await groqRequest(
+      [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: continuePrompt },
+      ],
+      maxTokens
+    );
+    res.json({ text });
+  } catch (err) {
+    console.error('Groq continue error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Teenoihub running on port ${PORT}`);
 });

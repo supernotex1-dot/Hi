@@ -40,6 +40,7 @@ const els = {
   storyMeta: document.getElementById('storyMeta'),
   storyFooter: document.getElementById('storyFooter'),
   btnCopy: document.getElementById('btnCopy'),
+  btnSequel: document.getElementById('btnSequel'),
   btnRestart: document.getElementById('btnRestart'),
   characterName: document.getElementById('characterName'),
   generateName: document.getElementById('generateName'),
@@ -221,6 +222,8 @@ els.btnRestart.addEventListener('click', () => {
   showPage('landing');
 });
 
+els.btnSequel.addEventListener('click', continueStory);
+
 els.btnCopy.addEventListener('click', () => {
   const text = els.storyBody.innerText;
   navigator.clipboard.writeText(text).then(() => {
@@ -232,6 +235,7 @@ els.btnCopy.addEventListener('click', () => {
 // ===== Reset =====
 function resetState() {
   state.currentStep = 1;
+  sequelCount = 0;
   state.data = { storyType: null, ghostType: null, generateCharacter: null, characterName: '', generateName: false, characterAge: '', characterGender: null, characterJob: '', setting: null, storyLength: null, additionalDetails: '' };
   const charForm = document.getElementById('characterForm');
   if (charForm) charForm.classList.add('hidden');
@@ -251,6 +255,36 @@ function resetState() {
 
 // ===== Story Generation =====
 let fullStoryText = '';
+let sequelCount = 0;
+
+async function continueStory() {
+  const previousStory = fullStoryText;
+  showPage('generating');
+  els.storyFooter.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/continue-story', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ previousStory, data: state.data }),
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    sequelCount++;
+    fullStoryText = data.text || '';
+    showPage('story');
+    const part = sequelCount > 1 ? `ภาค ${sequelCount}` : 'ภาคต่อ';
+    els.storyMeta.textContent = els.storyMeta.textContent.replace(/ · ภาค.*$/, '') + ` · ${part}`;
+    renderStory(fullStoryText);
+    finishStory();
+  } catch (err) {
+    showPage('story');
+    els.storyBody.innerHTML = `<p style="color:#cc4444;">เกิดข้อผิดพลาด: ${err.message}</p>`;
+    els.storyFooter.style.display = 'block';
+  }
+}
 
 async function generateStory() {
   showPage('generating');
